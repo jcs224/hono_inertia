@@ -10,9 +10,9 @@ function processTemplate(template: string, jsonPayload: Record<string, unknown>,
   return parsedTemplate
 }
 
-export const inertia = (template: string, checkVersion: () => string): MiddlewareHandler => {
+export const inertia = (template: string, checkVersion: () => string | Promise<string>): MiddlewareHandler => {
   return async (c, next) => {
-    let version: string = await checkVersion.call(undefined) ?? 'default'
+    let version: string = await checkVersion() ?? 'default'
     let shared: Record<string, unknown>
 
     c.set('inertia', {
