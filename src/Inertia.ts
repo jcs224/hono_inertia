@@ -1,10 +1,10 @@
 import { MiddlewareHandler } from "https://deno.land/x/hono@v2.7.6/types.ts"
 import { encode } from "https://cdn.skypack.dev/html-entities@2.3.2"
 
-function processTemplate(template: string, jsonPayload: Record<string, unknown>) {
+function processTemplate(template: string, jsonPayload: Record<string, unknown>, ssrString? : string | null) {
   const parsedTemplate = template.replace(
     '@inertia', 
-    /*html*/`<div id="app" data-page='${encode(JSON.stringify(jsonPayload))}'></div>`
+    /*html*/`<div id="app" data-page='${encode(JSON.stringify(jsonPayload))}'>${ ssrString || '' }</div>`
   )
 
   return parsedTemplate
@@ -20,7 +20,7 @@ export const inertia = (template: string, checkVersion: () => string): Middlewar
         shared = payload
       },
 
-      render(component: string, payload: Record<string, unknown>) {
+      render(component: string, payload: Record<string, unknown>, ssrString?: string) {
         const inertiaObject = {
           component,
           props: { ...shared, ...payload },
@@ -45,7 +45,7 @@ export const inertia = (template: string, checkVersion: () => string): Middlewar
             c.status(409)
             return c.body(null)
           } else {
-            return c.html(processTemplate(template, inertiaObject)) 
+            return c.html(processTemplate(template, inertiaObject, ssrString || null)) 
           }
         }
       }
