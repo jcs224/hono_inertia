@@ -1,6 +1,6 @@
 # Inertia Adapter for Hono
 
-[Inertia.js](https://inertiajs.com) for backend. Only for Deno right now, coming soon to other runtimes supported by Hono (CF Workers, Bun, etc.)
+[Inertia.js](https://inertiajs.com) adapter for [Hono](https://honojs.dev). Only for Deno right now, coming soon to other runtimes supported by Hono (CF Workers, Bun, etc.)
 
 ## Example (in Deno)
 
