@@ -1,7 +1,7 @@
-import { MiddlewareHandler } from "https://deno.land/x/hono@v2.7.6/types.ts"
+import type { Handler } from "https://deno.land/x/hono@v2.7.7/types.ts"
 import { encode } from "https://cdn.skypack.dev/html-entities@2.3.2"
 
-function processTemplate(template: string, jsonPayload: Record<string, unknown>, ssrString? : string | null) {
+function processPage(template: string, jsonPayload: Record<string, unknown>, ssrString? : string | null) {
   const parsedTemplate = template.replace(
     '@inertia', 
     /*html*/`<div id="app" data-page='${encode(JSON.stringify(jsonPayload))}'>${ ssrString || '' }</div>`
@@ -10,7 +10,11 @@ function processTemplate(template: string, jsonPayload: Record<string, unknown>,
   return parsedTemplate
 }
 
-export const inertia = (template: string, checkVersion: () => string | Promise<string>): MiddlewareHandler => {
+export const inertia = (
+  template: string, 
+  checkVersion: () => string | Promise<string>,
+  templateProcessor?: (template: string) => string
+): Handler => {
   return async (c, next) => {
     let version: string = await checkVersion() ?? 'default'
     let shared: Record<string, unknown>
@@ -20,7 +24,11 @@ export const inertia = (template: string, checkVersion: () => string | Promise<s
         shared = payload
       },
 
-      render(component: string, payload: Record<string, unknown>, ssrString?: string) {
+      render(
+        component: string, 
+        payload: Record<string, unknown>, 
+        ssrString?: string,
+      ) {
         const inertiaObject = {
           component,
           props: { ...shared, ...payload },
@@ -45,7 +53,9 @@ export const inertia = (template: string, checkVersion: () => string | Promise<s
             c.status(409)
             return c.body(null)
           } else {
-            return c.html(processTemplate(template, inertiaObject, ssrString || null)) 
+            const processedPage = processPage(template, inertiaObject, ssrString || null)
+            const processedTemplate = templateProcessor ? templateProcessor(processedPage) : processedPage
+            return c.html(processedTemplate) 
           }
         }
       }
